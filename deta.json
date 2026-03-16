@@ -1,0 +1,6 @@
+{
+  "name": "f1-dashboard",
+  "description": "F1 Dashboard Backend",
+  "runtime": "python",
+  "entrypoint": "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $DETA_PORT"
+}
