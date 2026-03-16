@@ -37,34 +37,9 @@ CURRENT_SESSION = "Race"
 
 async def precache_sessions():
     """Pre-cache current/latest session on startup if cache is empty."""
-    import os
-    is_production = os.getenv("RENDER") or os.getenv("PORT")
-    
-    if is_production:
-        # On Render, do light background caching after startup
-        await asyncio.sleep(10)
-        print("Light background pre-caching...")
-        try:
-            has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-            if not has_cache:
-                print(f"  Loading GP: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-                loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-                print(f"  Background cache done!")
-        except Exception as e:
-            print(f"  Background cache failed: {e}")
-    else:
-        print("Checking cache...")
-        has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-        if has_cache:
-            print(f"  Cache hit: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-            return
-        print(f"  Cache empty. Loading latest GP: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}...")
-        try:
-            loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-            print(f"  Cached: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-        except Exception as e:
-            print(f"  Failed to cache: {e}")
-        print("Pre-caching complete!")
+    # Disable pre-caching on production to avoid memory issues
+    # Data will be loaded on-demand when users request it
+    print("Pre-caching disabled - data loads on-demand")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
