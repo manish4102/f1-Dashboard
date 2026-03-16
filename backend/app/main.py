@@ -38,27 +38,33 @@ CURRENT_SESSION = "Race"
 async def precache_sessions():
     """Pre-cache current/latest session on startup if cache is empty."""
     # Skip pre-caching in production to avoid startup timeout
+    # But do it in background after app starts
     import os
-    if os.getenv("RENDER") or os.getenv("PORT"):
-        print("Skipping pre-caching in production...")
-        return
-    
-    print("Checking cache...")
-    
-    # Check if any cache exists
-    has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-    
-    if has_cache:
-        print(f"  Cache hit: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-        return
-    
-    print(f"  Cache empty. Loading latest GP: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}...")
-    try:
-        loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-        print(f"  Cached: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-    except Exception as e:
-        print(f"  Failed to cache: {e}")
-    print("Pre-caching complete!")
+    if not (os.getenv("RENDER") or os.getenv("PORT")):
+        print("Checking cache...")
+        has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+        if has_cache:
+            print(f"  Cache hit: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
+            return
+        print(f"  Cache empty. Loading latest GP: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}...")
+        try:
+            loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+            print(f"  Cached: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
+        except Exception as e:
+            print(f"  Failed to cache: {e}")
+        print("Pre-caching complete!")
+    else:
+        # On Render, do it in background after startup
+        await asyncio.sleep(5)  # Wait for app to fully start
+        print("Background pre-caching starting...")
+        try:
+            has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+            if not has_cache:
+                print(f"  Loading GP in background: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
+                loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+                print(f"  Background cache complete!")
+        except Exception as e:
+            print(f"  Background cache failed: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
