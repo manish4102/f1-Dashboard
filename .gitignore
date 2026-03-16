@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+venv/
+.venv/
+*.egg-info/
+.env
+
+# FastF1 cache (downloaded automatically)
+backend/fastf1_cache/
+backend/data_cache/
+backend/cache/
+
+# Flutter (already handled in frontend/.gitignore but repeated for root)
+frontend/build/
+frontend/.dart_tool/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
