@@ -43,7 +43,7 @@ class ApiClient {
   final String baseUrl;
   final http.Client client = http.Client();
 
-  ApiClient({this.baseUrl = "http://localhost:8001"});
+  ApiClient({this.baseUrl = "https://f1-dashboard-1-2s1r.onrender.com"});
 
   // -----------------------------
   // AUTH (keep your existing implementations)

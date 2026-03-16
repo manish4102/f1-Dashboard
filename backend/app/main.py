@@ -37,6 +37,12 @@ CURRENT_SESSION = "Race"
 
 async def precache_sessions():
     """Pre-cache current/latest session on startup if cache is empty."""
+    # Skip pre-caching in production to avoid startup timeout
+    import os
+    if os.getenv("RENDER") or os.getenv("PORT"):
+        print("Skipping pre-caching in production...")
+        return
+    
     print("Checking cache...")
     
     # Check if any cache exists
