@@ -31,16 +31,28 @@ store = CacheStore("./data_cache")
 loader = FastF1Loader(store=store, fastf1_cache_dir="./fastf1_cache")
 
 # Most recent GP with full data
-CURRENT_SEASON = 2025
-CURRENT_ROUND = 24
+CURRENT_SEASON = 2026
+CURRENT_ROUND = 1
 CURRENT_SESSION = "Race"
 
 async def precache_sessions():
     """Pre-cache current/latest session on startup if cache is empty."""
-    # Skip pre-caching in production to avoid startup timeout
-    # But do it in background after app starts
     import os
-    if not (os.getenv("RENDER") or os.getenv("PORT")):
+    is_production = os.getenv("RENDER") or os.getenv("PORT")
+    
+    if is_production:
+        # On Render, do light background caching after startup
+        await asyncio.sleep(10)
+        print("Light background pre-caching...")
+        try:
+            has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+            if not has_cache:
+                print(f"  Loading GP: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
+                loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
+                print(f"  Background cache done!")
+        except Exception as e:
+            print(f"  Background cache failed: {e}")
+    else:
         print("Checking cache...")
         has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
         if has_cache:
@@ -53,18 +65,6 @@ async def precache_sessions():
         except Exception as e:
             print(f"  Failed to cache: {e}")
         print("Pre-caching complete!")
-    else:
-        # On Render, do it in background after startup
-        await asyncio.sleep(5)  # Wait for app to fully start
-        print("Background pre-caching starting...")
-        try:
-            has_cache = store.find_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-            if not has_cache:
-                print(f"  Loading GP in background: {CURRENT_SEASON}-{CURRENT_ROUND}-{CURRENT_SESSION}")
-                loader.load_and_cache_full(CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION)
-                print(f"  Background cache complete!")
-        except Exception as e:
-            print(f"  Background cache failed: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
