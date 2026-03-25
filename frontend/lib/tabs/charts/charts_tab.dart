@@ -70,10 +70,10 @@ class _ChartsTabState extends ConsumerState<ChartsTab> {
   double lapZoom = 1.0;
 
   // API client for dropdown
-  final ApiClient _api = ApiClient(baseUrl: "http://localhost:8001");
+  final ApiClient _api = ApiClient();
 
-  int _defaultSeason = 2025;
-  int _defaultRound = 24;
+  int _defaultSeason = 2026;
+  int _defaultRound = 1;
   String _defaultSessionName = "Race";
 
   // ✅ telemetry factor selection (defaults)

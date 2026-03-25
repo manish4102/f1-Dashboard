@@ -56,10 +56,10 @@ class LapChartsTab extends ConsumerStatefulWidget {
 }
 
 class _LapChartsTabState extends ConsumerState<LapChartsTab> {
-  final ApiClient _api = ApiClient(baseUrl: "http://localhost:8001");
+  final ApiClient _api = ApiClient();
 
-  int _defaultSeason = 2025;
-  int _defaultRound = 24;
+  int _defaultSeason = 2026;
+  int _defaultRound = 1;
   String _defaultSessionName = "Race";
   bool _loadedDefault = false;
 

@@ -16,10 +16,10 @@ class TyreStrategyTab extends ConsumerStatefulWidget {
 }
 
 class _TyreStrategyTabState extends ConsumerState<TyreStrategyTab> {
-  final ApiClient _api = ApiClient(baseUrl: "http://localhost:8001");
+  final ApiClient _api = ApiClient();
 
-  int _defaultSeason = 2025;
-  int _defaultRound = 24;
+  int _defaultSeason = 2026;
+  int _defaultRound = 1;
   String _defaultSessionName = "Race";
 
   @override
@@ -80,7 +80,14 @@ class _TyreStrategyTabState extends ConsumerState<TyreStrategyTab> {
                 if (stints.isEmpty) {
                   return _driverCardNoData(context, payload, code, idx);
                 }
-                return _driverCard(context, payload, code, stints, totalLaps, idx);
+                return _driverCard(
+                  context,
+                  payload,
+                  code,
+                  stints,
+                  totalLaps,
+                  idx,
+                );
               }),
               const SizedBox(height: 24),
             ],
@@ -442,8 +449,8 @@ class _TyreStrategyTabState extends ConsumerState<TyreStrategyTab> {
 
     final normalized =
         stints.map((s) {
-          final compound =
-              (s["compound"] ?? s[" tyre"] ?? s["Compound"] ?? "—").toString();
+          final compound = (s["compound"] ?? s[" tyre"] ?? s["Compound"] ?? "—")
+              .toString();
           final lapStart = _asInt(s["lap_start"]) ?? _asInt(s["start"]) ?? 1;
           final lapEnd = _asInt(s["lap_end"]) ?? _asInt(s["end"]) ?? lapStart;
           return {
@@ -451,11 +458,9 @@ class _TyreStrategyTabState extends ConsumerState<TyreStrategyTab> {
             "lap_start": lapStart,
             "lap_end": lapEnd,
           };
-        }).toList()
-          ..sort(
-            (a, b) =>
-                (a["lap_start"] as int).compareTo(b["lap_start"] as int),
-          );
+        }).toList()..sort(
+          (a, b) => (a["lap_start"] as int).compareTo(b["lap_start"] as int),
+        );
 
     final computedMaxEnd = normalized.fold<int>(
       0,

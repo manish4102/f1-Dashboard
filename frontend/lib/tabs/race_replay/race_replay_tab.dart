@@ -21,7 +21,7 @@ class RaceReplayTab extends ConsumerStatefulWidget {
     super.key,
     this.replayUrl,
     this.replayLoader,
-    this.apiBaseUrl = 'http://localhost:8001',
+    this.apiBaseUrl = 'https://manish4102-f1-dashboard.hf.space',
   });
 
   @override
@@ -33,9 +33,9 @@ class _RaceReplayTabState extends ConsumerState<RaceReplayTab>
   ReplayData? _data;
   String? _error;
 
-  final ApiClient _api = ApiClient(baseUrl: "http://localhost:8001");
-  int _defaultSeason = 2025;
-  int _defaultRound = 24;
+  final ApiClient _api = ApiClient();
+  int _defaultSeason = 2026;
+  int _defaultRound = 1;
 
   late final Ticker _ticker;
   Duration? _lastTick;

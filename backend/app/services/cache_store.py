@@ -3,18 +3,21 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Dict
+from functools import lru_cache
 
 
 class CacheStore:
     """
-    File-based cache for full session payloads.
+    File-based cache for full session payloads with in-memory LRU cache.
     Ensures payloads are JSON-compliant (no NaN/Infinity).
     """
 
     def __init__(self, base_dir: str = "./data_cache"):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
+        self._memory_cache: Dict[str, Any] = {}
+        self._max_memory_items = 20
 
     def _full_path(self, season: int, round_no: int, session_name: str) -> Path:
         key = f"{int(season)}-{int(round_no)}-{str(session_name).strip().lower()}"
@@ -36,13 +39,22 @@ class CacheStore:
         # Write strict JSON (this will raise if something sneaks through)
         text = json.dumps(payload, ensure_ascii=False, allow_nan=False)
         p.write_text(text, encoding="utf-8")
+
+        # Also cache in memory
+        if len(self._memory_cache) >= self._max_memory_items:
+            self._memory_cache.pop(next(iter(self._memory_cache)))
+        self._memory_cache[cache_id] = payload
+
         return cache_id
 
     def read_full(self, cache_id: str) -> Any:
         """
-        Reads a cached payload.
+        Reads a cached payload from memory or disk.
         Also fixes older cache files that contain NaN/Infinity tokens.
         """
+        if cache_id in self._memory_cache:
+            return self._memory_cache[cache_id]
+
         p = self.base_dir / f"{cache_id}.full.json"
         if not p.exists():
             raise FileNotFoundError(f"Cache not found: {cache_id}")
@@ -55,8 +67,17 @@ class CacheStore:
 
         data = json.loads(raw)
 
-        # Also sanitize after parse in case something slipped in.
-        return _sanitize_nan_inf(data)
+        # Sanitize and cache in memory
+        data = _sanitize_nan_inf(data)
+
+        if len(self._memory_cache) >= self._max_memory_items:
+            self._memory_cache.pop(next(iter(self._memory_cache)))
+        self._memory_cache[cache_id] = data
+
+        return data
+
+    def keys(self):
+        return [p.stem.replace(".full", "") for p in self.base_dir.glob("*.full.json")]
 
 
 _NON_JSON_NUMBER_RE = re.compile(r'(?<!")\b(NaN|Infinity|-Infinity)\b(?!")')

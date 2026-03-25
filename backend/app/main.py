@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastf1 import Cache
 from contextlib import asynccontextmanager
@@ -36,22 +37,36 @@ CURRENT_ROUND = 1
 CURRENT_SESSION = "Race"
 
 async def precache_sessions():
-    """Pre-cache current/latest session on startup if cache is empty."""
-    # Disable pre-caching on production to avoid memory issues
-    # Data will be loaded on-demand when users request it
-    print("Pre-caching disabled - data loads on-demand")
+    """Pre-cache current/latest session on startup."""
+    print("Pre-caching sessions...")
+    sessions_to_cache = [
+        (CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION),
+        (CURRENT_SEASON, 1, "Qualifying"),
+        (CURRENT_SEASON, 1, "Practice 3"),
+        (CURRENT_SEASON, 1, "Practice 2"),
+        (CURRENT_SEASON, 1, "Practice 1"),
+    ]
+    for season, round_no, session in sessions_to_cache:
+        try:
+            cache_id = store.find_full(season, round_no, session)
+            if not cache_id:
+                print(f"  Pre-caching {season} R{round_no} {session}...")
+                loader.load_and_cache_full(season, round_no, session)
+                print(f"  Done: {season} R{round_no} {session}")
+        except Exception as e:
+            print(f"  Skipped {season} R{round_no} {session}: {e}")
+    print("Pre-caching complete!")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start pre-caching in background (non-blocking)
-    try:
-        asyncio.create_task(precache_sessions())
-    except Exception:
-        pass
+    asyncio.create_task(precache_sessions())
     yield
 
 # Create app
 app = FastAPI(title="F1 Dash API", version="0.1.0", lifespan=lifespan)
+
+# GZip compression for faster responses
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS (dev-friendly)
 app.add_middleware(
@@ -140,3 +155,16 @@ def store_keys():
     if hasattr(store, "keys"):
         return {"keys": store.keys()}
     return {"detail": "CacheStore has no keys() method"}
+
+@app.post("/api/warmup")
+def warmup(season: int = Query(2026), round: int = Query(1), session: str = Query("R")):
+    """Pre-load a specific session into cache."""
+    cache_id = f"{season}-{round}-{session.strip().lower()}"
+    try:
+        existing = store.find_full(season, round, session)
+        if existing:
+            return {"ok": True, "cache_id": existing, "cached": True}
+        loader.load_and_cache_full(season, round, session)
+        return {"ok": True, "cache_id": cache_id, "cached": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

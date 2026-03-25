@@ -3,10 +3,18 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
 import math
+import threading
+import warnings
+
+# Suppress deprecation warnings for google.generativeai
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 import fastf1
 import pandas as pd
-#import pandas as pd as_pd
+
+
+class TimeoutError(Exception):
+    pass
 
 
 class FastF1Loader:
@@ -44,7 +52,22 @@ class FastF1Loader:
           ]
         }
         """
-        df = fastf1.get_event_schedule(season)
+        # Set a timeout to prevent hanging on network requests
+        # (HuggingFace has limited network access)
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(15)  # 15 second timeout
+        
+        try:
+            df = fastf1.get_event_schedule(season)
+            signal.alarm(0)  # Cancel alarm
+        except TimeoutError:
+            signal.alarm(0)
+            # Return empty schedule on timeout (network issues)
+            return {"season": int(season), "events": []}
+        except Exception as e:
+            signal.alarm(0)
+            # Return empty schedule on any error
+            return {"season": int(season), "events": []}
 
         # Some FastF1 versions return an EventSchedule object that behaves like a DataFrame;
         # to be safe, coerce to DataFrame.
@@ -669,7 +692,7 @@ class FastF1Loader:
         global_t_max = None
 
         # payload size knobs
-        MAX_POINTS_PER_DRIVER = 3000
+        MAX_POINTS_PER_DRIVER = 1500
         MIN_POINTS_PER_DRIVER = 30
 
         for drv in drivers:
@@ -1008,8 +1031,8 @@ class FastF1Loader:
                 tel = tel.dropna(subset=["Distance"]).sort_values("Distance").reset_index(drop=True)
 
                 # Downsample to keep payload small
-                if len(tel) > 800:
-                    step = max(1, len(tel) // 800)
+                if len(tel) > 600:
+                    step = max(1, len(tel) // 600)
                     tel = tel.iloc[::step].reset_index(drop=True)
 
                 if ref_x is None:

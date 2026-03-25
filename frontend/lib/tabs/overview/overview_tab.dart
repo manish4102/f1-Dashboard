@@ -22,11 +22,11 @@ class OverviewTab extends ConsumerStatefulWidget {
 class _OverviewTabState extends ConsumerState<OverviewTab> {
   bool _loadedDefault = false;
 
-  int _defaultSeason = 2025;
-  int _defaultRound = 24;
+  int _defaultSeason = 2026;
+  int _defaultRound = 1;
   String _defaultSessionName = "Race";
 
-  final ApiClient _api = ApiClient(baseUrl: "http://localhost:8001");
+  final ApiClient _api = ApiClient();
 
   @override
   void initState() {
