@@ -5,18 +5,14 @@ import traceback
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
 import math
-import threading
 import warnings
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 # Suppress deprecation warnings for google.generativeai
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 import fastf1
 import pandas as pd
-
-
-class TimeoutError(Exception):
-    pass
 
 
 def log_error(prefix: str, e: Exception):
