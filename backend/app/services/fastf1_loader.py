@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+import traceback
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
 import math
@@ -15,6 +17,11 @@ import pandas as pd
 
 class TimeoutError(Exception):
     pass
+
+
+def log_error(prefix: str, e: Exception):
+    print(f"[ERROR] {prefix}: {e}", file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
 
 
 class FastF1Loader:

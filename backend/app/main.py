@@ -59,7 +59,8 @@ async def precache_sessions():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(precache_sessions())
+    # Skip pre-caching on HuggingFace
+    # Data will be loaded on-demand when users request it
     yield
 
 # Create app
