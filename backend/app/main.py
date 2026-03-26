@@ -88,22 +88,33 @@ def root():
 def health():
     return {"ok": True}
 
+# Debug endpoint
+@app.get("/debug/schedule")
+def debug_schedule(season: int = Query(2025)):
+    return {
+        "season": season,
+        "events": [
+            {"round": 1, "event_name": "Bahrain Grand Prix", "country": "Bahrain", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+        ]
+    }
+
 # ✅ NEW: schedule endpoint
 @app.get("/schedule")
 def get_schedule(season: int = Query(..., ge=1950, le=2100)):
+    fallback = {
+        "season": season,
+        "events": [
+            {"round": 1, "event_name": "Bahrain Grand Prix", "country": "Bahrain", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 2, "event_name": "Saudi Arabian Grand Prix", "country": "Saudi Arabia", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+        ]
+    }
     try:
-        return JSONResponse(content=loader.get_event_schedule(season))
+        result = loader.get_event_schedule(season)
+        return JSONResponse(content=result)
     except Exception as e:
         print(f"[ERROR] Schedule failed: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc(file=sys.stderr)
-        fallback = {
-            "season": season,
-            "events": [
-                {"round": 1, "event_name": "Bahrain Grand Prix", "country": "Bahrain", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
-                {"round": 2, "event_name": "Saudi Arabian Grand Prix", "country": "Saudi Arabia", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
-            ]
-        }
         return JSONResponse(content=fallback)
 
 # Get current/latest session
