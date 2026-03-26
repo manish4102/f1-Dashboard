@@ -66,9 +66,6 @@ async def lifespan(app: FastAPI):
 # Create app
 app = FastAPI(title="F1 Dash API", version="0.1.0", lifespan=lifespan)
 
-# GZip compression for faster responses
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
 # CORS (dev-friendly)
 app.add_middleware(
     CORSMiddleware,
