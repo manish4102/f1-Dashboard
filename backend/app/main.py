@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastf1 import Cache
 from contextlib import asynccontextmanager
