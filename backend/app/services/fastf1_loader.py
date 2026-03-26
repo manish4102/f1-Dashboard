@@ -52,22 +52,24 @@ class FastF1Loader:
           ]
         }
         """
-        # Set a timeout to prevent hanging on network requests
-        # (HuggingFace has limited network access)
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(15)  # 15 second timeout
-        
-        try:
-            df = fastf1.get_event_schedule(season)
-            signal.alarm(0)  # Cancel alarm
-        except TimeoutError:
-            signal.alarm(0)
-            # Return empty schedule on timeout (network issues)
+        # Threading-based timeout (works on HuggingFace)
+        result = {"df": None, "error": None}
+
+        def fetch_schedule():
+            try:
+                result["df"] = fastf1.get_event_schedule(season)
+            except Exception as e:
+                result["error"] = e
+
+        thread = threading.Thread(target=fetch_schedule)
+        thread.daemon = True
+        thread.start()
+        thread.join(timeout=15)
+
+        if thread.is_alive() or result["error"] is not None:
             return {"season": int(season), "events": []}
-        except Exception as e:
-            signal.alarm(0)
-            # Return empty schedule on any error
-            return {"season": int(season), "events": []}
+
+        df = result["df"]
 
         # Some FastF1 versions return an EventSchedule object that behaves like a DataFrame;
         # to be safe, coerce to DataFrame.

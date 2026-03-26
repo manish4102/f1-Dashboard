@@ -93,7 +93,10 @@ def health():
 # ✅ NEW: schedule endpoint
 @app.get("/schedule")
 def get_schedule(season: int = Query(..., ge=1950, le=2100)):
-    return JSONResponse(content=loader.get_event_schedule(season))
+    try:
+        return JSONResponse(content=loader.get_event_schedule(season))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Schedule error: {str(e)}")
 
 # Get current/latest session
 @app.get("/api/current")
