@@ -61,6 +61,28 @@ class SessionController extends StateNotifier<SessionState> {
     ref.read(loadingProvider.notifier).show();
 
     try {
+      // Build cache_id from params
+      final cacheId = '${season}-${round}-${sessionName.toLowerCase()}';
+
+      // Try to get from cache first (fast path)
+      try {
+        final fullJson = await api.getFull(cacheId: cacheId);
+        final full = FullPayload(Map<String, dynamic>.from(fullJson as Map));
+
+        state = state.copyWith(
+          loading: false,
+          cacheId: cacheId,
+          full: full,
+          error: null,
+          justLoaded: true,
+        );
+        ref.read(loadingProvider.notifier).hide();
+        return;
+      } catch (_) {
+        // Cache miss, continue to loadSession
+      }
+
+      // Cache miss - load session (slow path)
       final resp = await api.loadSession(
         season: season,
         round: round,
@@ -68,18 +90,18 @@ class SessionController extends StateNotifier<SessionState> {
       );
 
       final respMap = Map<String, dynamic>.from(resp as Map);
-      final cacheId = (respMap['cache_id'] ?? '').toString();
+      final newCacheId = (respMap['cache_id'] ?? '').toString();
 
-      if (cacheId.isEmpty) {
+      if (newCacheId.isEmpty) {
         throw Exception("load-session did not return cache_id");
       }
 
-      final fullJson = await api.getFull(cacheId: cacheId);
+      final fullJson = await api.getFull(cacheId: newCacheId);
       final full = FullPayload(Map<String, dynamic>.from(fullJson as Map));
 
       state = state.copyWith(
         loading: false,
-        cacheId: cacheId,
+        cacheId: newCacheId,
         full: full,
         error: null,
         justLoaded: true,

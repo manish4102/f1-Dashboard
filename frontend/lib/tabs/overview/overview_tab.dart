@@ -22,8 +22,8 @@ class OverviewTab extends ConsumerStatefulWidget {
 class _OverviewTabState extends ConsumerState<OverviewTab> {
   bool _loadedDefault = false;
 
-  int _defaultSeason = 2026;
-  int _defaultRound = 1;
+  int _defaultSeason = 2025;
+  int _defaultRound = 24;
   String _defaultSessionName = "Race";
 
   final ApiClient _api = ApiClient();
@@ -31,7 +31,6 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   @override
   void initState() {
     super.initState();
-    _fetchCurrentSession();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadDefaultOnce();

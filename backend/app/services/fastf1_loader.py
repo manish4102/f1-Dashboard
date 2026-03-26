@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
 import math
 import warnings
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+import threading
 
 # Suppress deprecation warnings for google.generativeai
 warnings.filterwarnings("ignore", category=FutureWarning)

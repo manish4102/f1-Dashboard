@@ -2,10 +2,9 @@
 title: F1 Dashboard
 emoji: 🏎️
 colorFrom: red
-colorTo: black
-sdk: gradio
-sdk_version: 4.44.1
-app_file: app/main.py
+colorTo: gray
+sdk: docker
+app_file: app.py
 pinned: false
 ---
 

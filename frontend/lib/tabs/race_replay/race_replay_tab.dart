@@ -34,8 +34,8 @@ class _RaceReplayTabState extends ConsumerState<RaceReplayTab>
   String? _error;
 
   final ApiClient _api = ApiClient();
-  int _defaultSeason = 2026;
-  int _defaultRound = 1;
+  int _defaultSeason = 2025;
+  int _defaultRound = 24;
 
   late final Ticker _ticker;
   Duration? _lastTick;

@@ -31,20 +31,19 @@ Cache.enable_cache("./fastf1_cache")
 store = CacheStore("./data_cache")
 loader = FastF1Loader(store=store, fastf1_cache_dir="./fastf1_cache")
 
-# Most recent GP with full data
-CURRENT_SEASON = 2026
-CURRENT_ROUND = 1
+# Most recent GP with full data (2025 Abu Dhabi GP)
+CURRENT_SEASON = 2025
+CURRENT_ROUND = 24
 CURRENT_SESSION = "Race"
 
-async def precache_sessions():
-    """Pre-cache current/latest session on startup."""
+def precache_sessions_sync():
+    """Pre-cache sessions synchronously (called during startup)."""
     print("Pre-caching sessions...")
     sessions_to_cache = [
-        (CURRENT_SEASON, CURRENT_ROUND, CURRENT_SESSION),
-        (CURRENT_SEASON, 1, "Qualifying"),
-        (CURRENT_SEASON, 1, "Practice 3"),
-        (CURRENT_SEASON, 1, "Practice 2"),
-        (CURRENT_SEASON, 1, "Practice 1"),
+        (2025, 24, "Race"),
+        (2025, 24, "Qualifying"),
+        (2025, 23, "Race"),
+        (2025, 1, "Race"),
     ]
     for season, round_no, session in sessions_to_cache:
         try:
@@ -59,8 +58,7 @@ async def precache_sessions():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Skip pre-caching on HuggingFace
-    # Data will be loaded on-demand when users request it
+    precache_sessions_sync()
     yield
 
 # Create app
@@ -101,21 +99,36 @@ def debug_schedule(season: int = Query(2025)):
 # ✅ NEW: schedule endpoint
 @app.get("/schedule")
 def get_schedule(season: int = Query(..., ge=1950, le=2100)):
-    fallback = {
+    # Return full 2025 calendar directly (FastF1 API is unreliable on HuggingFace)
+    return JSONResponse(content={
         "season": season,
         "events": [
             {"round": 1, "event_name": "Bahrain Grand Prix", "country": "Bahrain", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
             {"round": 2, "event_name": "Saudi Arabian Grand Prix", "country": "Saudi Arabia", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 3, "event_name": "Australian Grand Prix", "country": "Australia", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 4, "event_name": "Japanese Grand Prix", "country": "Japan", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 5, "event_name": "Chinese Grand Prix", "country": "China", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 6, "event_name": "Miami Grand Prix", "country": "United States", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 7, "event_name": "Emilia Romagna Grand Prix", "country": "Italy", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 8, "event_name": "Monaco Grand Prix", "country": "Monaco", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 9, "event_name": "Canadian Grand Prix", "country": "Canada", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 10, "event_name": "Spanish Grand Prix", "country": "Spain", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 11, "event_name": "Austrian Grand Prix", "country": "Austria", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 12, "event_name": "British Grand Prix", "country": "United Kingdom", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 13, "event_name": "Belgian Grand Prix", "country": "Belgium", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 14, "event_name": "Hungarian Grand Prix", "country": "Hungary", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 15, "event_name": "Dutch Grand Prix", "country": "Netherlands", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 16, "event_name": "Italian Grand Prix", "country": "Italy", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 17, "event_name": "Azerbaijan Grand Prix", "country": "Azerbaijan", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 18, "event_name": "Singapore Grand Prix", "country": "Singapore", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 19, "event_name": "United States Grand Prix", "country": "United States", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 20, "event_name": "Mexico City Grand Prix", "country": "Mexico", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 21, "event_name": "São Paulo Grand Prix", "country": "Brazil", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 22, "event_name": "Las Vegas Grand Prix", "country": "United States", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 23, "event_name": "Qatar Grand Prix", "country": "Qatar", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
+            {"round": 24, "event_name": "Abu Dhabi Grand Prix", "country": "United Arab Emirates", "sessions": [{"name": "Race"}, {"name": "Qualifying"}, {"name": "Practice 1"}, {"name": "Practice 2"}, {"name": "Practice 3"}]},
         ]
-    }
-    try:
-        result = loader.get_event_schedule(season)
-        return JSONResponse(content=result)
-    except Exception as e:
-        print(f"[ERROR] Schedule failed: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        return JSONResponse(content=fallback)
+    })
 
 # Get current/latest session
 @app.get("/api/current")
